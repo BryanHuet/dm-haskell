@@ -1,0 +1,185 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{float}
+\usepackage[linesnumbered,ruled]{algorithm2e}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tabto}
+\newenvironment{code}[1]
+    {\begin{center}
+    \textbf{#1\\[1ex]}
+    \begin{tabular}{|p{0.9\textwidth}|}
+    \hline\\
+    }
+    { 
+    \\\\\hline
+    \end{tabular} 
+    \end{center}
+    }
+    
+\newcommand{\size}[2]{{\fontsize{#1}{0}\selectfont#2}}
+\newenvironment{sizepar}[2]
+ {\par\fontsize{#1}{#2}\selectfont}
+ {\par}
+
+\begin{document}
+\begin{titlepage}
+	\parindent0pt
+	\hskip.25cm \vrule width.8pt \hskip.25cm
+	\vskip0pt plus 1fil
+	\fbox{%
+		\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule}
+			\centering\Large\bfseries
+			\vskip1cm
+			Autres Paradigmes
+			\vskip1cm \kern0pt
+		\end{minipage}%
+	}%
+	\vskip0.5cm
+	\centerline{\textbf{DM Haskell}}
+	\vskip0pt plus 1fil
+	\vskip0.25cm
+	\centerline{HUET Bryan\\ SAHIN Tolga}
+	\leavevmode
+	\vskip0pt plus 2fil
+	\hfill\bfseries{Année universitaire 2020}\hfill\null
+\end{titlepage}
+
+\newpage
+
+\thispagestyle{empty}
+\tableofcontents
+\newpage
+
+
+\section{Mise sous forme clausale d’une formule du calcul propositionnel (Partie 1)}
+Pour la bonne compréhension du dm, nous rappellerons à quel opérateurs logique correspond chaque caractère:\\
+Soit g et d deux formules,\\
+\~g :  Non g \\
+g \& d : g Et d \\
+g v d : g Ou d \\
+g => d : g Implique d\\
+g <=> d : g Équivaut d\\
+
+
+\subsection{Visualiser une formule : Question 1}	
+\begin{code}{visuFormule}
+    visuFormule :: Formule -> String \\
+    \\
+    visuFormule (Var p) = p \\
+    visuFormule (Non f) = "\~" ++ visuFormule f\\
+    visuFormule (Et g d) = "(" ++ (visuFormule g) ++ " \& " \\
+                            ++ (visuFormule d) ++ ")" \\
+    visuFormule (Ou g d) =  "(" ++ (visuFormule g) ++ " v " \\
+                            ++ (visuFormule d) ++ ")" \\
+    visuFormule (Imp g d) = "(" ++ (visuFormule g) ++ " => " \\ 
+                            ++ (visuFormule d) ++ ")" \\
+    visuFormule (Equi g d) ="(" ++ (visuFormule g) ++ " <=> " \\
+                        ++ (visuFormule d) ++ ")" 
+\end{code}
+
+\subsection{Faire disparaître des opérateurs : Question 2 \& 3}
+Soit g et d deux formule, \\
+- Il est possible de remplacer l'opérateur d'implication dans g => d par : \\
+(g => d) = (\~g v d) \\
+- Il est possible de remplacer l'opérateur d'équivalence dans g <=> d par : \\
+(g <=> d) = ((g => d) \& (d => g))
+\newpage
+\begin{code}{elimine}
+    elimine :: Formule -> Formule\\
+    \\
+    elimine (Var p) = (Var p)\\
+    elimine (Non f) = (Non (elimine f))\\
+    elimine (Et g d) = (Et (elimine g) (elimine d))\\
+    elimine (Ou g d) =(Ou (elimine g) (elimine d))\\
+    elimine (Imp g d) = (Ou (Non (elimine g)) (elimine d))\\
+    elimine (Equi g d) = (Et (elimine (Imp (elimine g) (elimine d)))\\ (elimine (Imp (elimine d) (elimine g))))
+
+\end{code}
+
+\subsection{Amener les négations devant les littéraux positifs : Question 4,5,6}
+Soit g, d et f des formules,\\
+Grâce à la loi de la double négation, Non(Non f) devient f.\\
+Les deux lois de Morgan sont les suivantes :\\
+- Non (g v d) <=> (\~g) \& (\~d)\\
+- Non (g \& d) <=> (\~g) v (\~d)
+\\
+\\
+disNon doit appliquer les lois de Morgan et de la double négation.
+\begin{code}{ameneNon, disNon}
+    ameneNon, disNon :: Formule -> Formule\\
+    \\
+    ameneNon (Var p) = (Var p)\\
+    ameneNon (Non f) = disNon f\\
+    ameneNon (Et g d) = (Et (ameneNon g) (ameneNon d))\\
+    ameneNon (Ou g d) = (Ou (ameneNon g) (ameneNon d))\\
+    \\
+    disNon (Var p) = (Non (Var p))\\
+    disNon (Non f) = (f)\\
+    disNon (Et g d) = (Ou (disNon g) (disNon d))\\
+    disNon (Ou g d) = (Et (disNon g) (disNon d))\\
+\end{code}
+\newpage
+
+\subsection{Faire apparaître une conjonction de clauses : Question 7 \& 8}
+\begin{code}{developper}
+    developper :: Formule -> Formule -> Formule\\
+    \\
+    developper (Et g d) x = (Et (Ou x g) (Ou x d))\\
+    developper x (Et g d) = (Et (Ou x g) (Ou x d))\\
+    developper x y = (Ou x y)
+\end{code}
+\begin{code}{formeClausale}
+    formeClausale :: Formule -> Formule\\
+    \\
+    formeClausale f = normalise (ameneNon (elimine f))
+\end{code}
+\newpage
+
+\section{Résolvante et principe de résolution (Partie 2)}
+
+\subsection{Transformer une Formule en une FormuleBis : Question 9}
+\begin{code}{etToListe}
+    etToListe :: Formule -> FormuleBis\\
+    \\
+    etToListe (Et g d) = (ouToListe g) : (etToListe d)\\
+    etToListe f = [ouToListe f]
+\end{code}
+\begin{code}{ouToListe}
+    ouToListe :: Formule -> Clause\\
+    \\
+    ouToListe (Ou g d) = (ouToListe g )++(ouToListe d)\\
+    ouToListe f = [f]
+\end{code}
+\subsection{Résolvante de deux clauses : Question 10,11,12}
+\begin{code}{neg}
+    neg :: Formule -> Formule\\
+    \\
+    neg (Non f) = f\\
+    neg f = (Non f)
+\end{code}
+\begin{code}{sontLiees}
+    sontLiees :: Clause -> Clause -> Bool\\
+    \\
+    sontLiees [] \_ = False\\
+    sontLiees (x:xs) ys = ((neg x) `elem` ys) || (sontLiees xs ys)
+\end{code}
+\newpage
+\begin{code}{resolvante}
+    resolvante :: Clause -> Clause -> Clause\\
+    \\
+    resolvante [] ys = []\\
+    resolvante (x:xs) (y:ys)\\
+    \tabto{5mm}| ((neg x) `elem` (y:ys))== True =  xs ++ (delete (neg x) (y:ys))\\
+    \tabto{5mm}| ((neg y) `elem` (x:xs))== True =  ys ++ (delete (neg y) (x:xs))\\
+    \tabto{5mm}| otherwise = [x] ++ [y] ++ resolvante xs ys
+    
+        
+\end{code}
+\section{Application : les sorites de Lewis Carroll}
+
+\end{document}
