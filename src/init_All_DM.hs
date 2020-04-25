@@ -183,6 +183,13 @@ bebe = Et (Imp (Var "bebe") (Non (Var "logique")))
 --
 
 logicien = (Et (Imp (Var "saint") (Var ("logicien")))
-  (Et (Imp (Var "malade") (Non(Var "saint")))
-  (Et (Imp (Var "enfant") (Non(Var "logicien")))
-  (Imp (Non (Var "malade")) (Var "saint")))))
+    (Et (Imp (Var "malade") (Non(Var "saint")))
+    (Et (Imp (Var "enfant") (Non(Var "logicien")))
+    (Imp (Non (Var "malade")) (Var "saint")))))
+
+ecole = (Et (Imp (Var "douze") (Non (Var "interne")))
+    (Et (Imp (Var "studieux") (Var "roux"))
+    (Et (Imp (Var "externe") (Non (Var "helleniste")))
+    (Et (Imp (Var "paresseux") (Var "douze"))
+    (Et (Imp (Non (Var "externe")) (Var "interne"))
+      (Imp (Non (Var "paresseux")) (Var "studieux")))))))

@@ -43,7 +43,8 @@
 	\centerline{\textbf{DM Haskell}}
 	\vskip0pt plus 1fil
 	\vskip0.25cm
-	\centerline{HUET Bryan\\ SAHIN Tolga}
+	\centerline{HUET Bryan \\ SAHIN Tolga}
+	\centerline{21701042 \\ 21801042}
 	\leavevmode
 	\vskip0pt plus 2fil
 	\hfill\bfseries{Année universitaire 2020}\hfill\null
@@ -181,5 +182,71 @@ disNon doit appliquer les lois de Morgan et de la double négation.
         
 \end{code}
 \section{Application : les sorites de Lewis Carroll}
+\subsection{Les logiciens}
+\tabto{0mm}1. Tous les individus sains d’esprit sont de possibles logiciens;\\
+2. Aucun malade mental n’est un juré possible;\\
+3. Aucun de vos enfants n’est un logicien possible ;\\
+4. Les non malade mental sont sains d’esprit;\\
+Donc ...\\
 
+On considère les propositions suivantes:
+\begin{itemize}
+    \item saint : être saint d'esprit
+    \item logicien : être logicien
+    \item malade : être malade mental
+    \item enfant : être un enfant\\
+\end{itemize}
+On modélise cette sorite sous forme d'une formule :\\
+1 --> saint => logicien\\
+2 --> malade => Non logicien\\
+3 --> enfant => Non logicien\\
+4 --> Non malade => saint
+\\ \\
+\emph{Traduction Haskell}\\
+logicien = (Et (Imp (Var "saint") (Var ("logicien")))\\
+    \tabto{18mm}(Et (Imp (Var "malade") (Non(Var "saint")))\\
+    \tabto{20mm}(Et (Imp (Var "enfant") (Non(Var "logicien")))\\
+    \tabto{22mm}(Imp (Non (Var "malade")) (Var "saint")))))\\
+\\
+> deduire logicien\\
+\big[Non (Var "saint"),Non (Var "enfant")\big]
+
+\subsection{L'école}
+
+\tabto{0mm}1. Aucun enfant de moins de douze ans dans cette école n’est interne ;\\
+2. Tous les enfants studieux ont les cheveux roux ;\\
+3. Aucun des externes n’est helléniste ;\\
+4. Seuls les élèves de moins de douze ans sont paresseux;\\
+5. Les non externes sont internes;\\
+6. Les non paresseux sont studieux;\\
+Donc ...\\
+
+On considère les propositions suivantes:
+\begin{itemize}
+    \item douze : enfant de moins de douze ans
+    \item interne : être interne
+    \item externe : être externe
+    \item roux : avoir les cheveux roux
+    \item helléniste : être helléniste
+    \item studieux : être studieux
+    \item paresseux : être paresseux \\
+\end{itemize}
+On modélise cette sorite sous forme d'une formule :\\
+1 --> douze => Non interne\\
+2 --> studieux => roux\\
+3 --> externe => Non helléniste\\
+4 --> paresseux => douze\\
+5 --> Non externe <=> interne
+6 --> Non paresseux <=> studieux
+\\ \\
+\emph{Traduction Haskell}\\
+ecole = (Et (Imp (Var "douze") (Non (Var "interne")))\\
+    \tabto{18mm}  (Et (Imp (Var "studieux") (Var "roux"))\\
+    \tabto{20mm}(Et (Imp (Var "externe") (Non (Var "helléniste")))\\
+    \tabto{22mm}(Et (Imp (Var "paresseux") (Var "douze"))\\
+    \tabto{24mm}(Et (Imp (Non (Var "externe")) (Var "interne"))
+     \tabto{26mm}(Imp (Non (Var "paresseux")) (Var "studieux")))))))\\
+\\
+> deduire ecole\\
+\big[Non (Var "helleniste"),Var "roux"\big]
 \end{document}
